@@ -14,6 +14,10 @@ $url = htmlspecialchars($_REQUEST["url"]);
 <input type="hidden" name="op" value="sharepopup">
 <input type="hidden" name="action" value="share">
 
+<?php if(!empty($_REQUEST["xdebug"])): ?>
+<input type="hidden" name="xdebug" value="<?php echo htmlspecialchars($_REQUEST["xdebug"]); ?>">
+<?php endif; ?>
+
 <tr><td align='right'><?php echo __("Title:") ?></td>
 <td width='80%'><input name='title' value="<?php echo $title ?>"></td></tr>
 <tr><td align='right'><?php echo __("URL:") ?></td>

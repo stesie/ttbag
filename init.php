@@ -72,6 +72,10 @@ class Ttbag extends Plugin implements IHandler {
 			$title = strip_tags($_REQUEST["title"]);
 		}
 
+		if(!empty($_REQUEST["xdebug"]) && $_REQUEST['xdebug'] == 2) {
+			die("<hr><h1>$title</h1>\n$content");
+		}
+
 		$content = $this->dbh->escape_string($content, false);
 		$title = $this->dbh->escape_string($title);
 
