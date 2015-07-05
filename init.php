@@ -98,6 +98,7 @@ class Ttbag extends Plugin implements IHandler {
 		echo "<pre>";
 		$extractor = new ContentExtractor(__DIR__.'/ftr-site-config', __DIR__.'/site-config.local');
 		$extractor->debug = true;
+		$this->check_single_page($extractor, $url, $html);
 		$extract_result = $extractor->process($html, $url);
 		echo "</pre>";
 
@@ -141,6 +142,71 @@ class Ttbag extends Plugin implements IHandler {
 			'title' => $extractor->getTitle(),
 			'html' => $html,
 		);
+	}
+
+	protected function check_single_page($extractor, &$url, &$html) {
+		$site_config = $extractor->buildSiteConfig($url, $html);
+		$debug_enabled = defined('DAEMON_EXTENDED_DEBUG') || $_REQUEST['xdebug'];
+
+		if (empty($site_config->single_page_link)) {
+			_debug("SiteConfig doesn't declare single_page_link", $debug_enabled);
+			return;
+		}
+
+		// Build DOM tree from HTML
+		$readability = new Readability($html, $url);
+		$xpath = new DOMXPath($readability->dom);
+
+		// Loop through single_page_link xpath expressions
+		$single_page_url = null;
+		foreach ($site_config->single_page_link as $pattern) {
+			_debug("Trying pattern: $pattern", $debug_enabled);
+			$elems = @$xpath->evaluate($pattern, $readability->dom);
+			if (is_string($elems)) {
+				_debug(". matched and returned a string", $debug_enabled);
+				$single_page_url = trim($elems);
+				break;
+			} elseif ($elems instanceof DOMNodeList && $elems->length > 0) {
+				_debug(". matched and returned a node list", $debug_enabled);
+				foreach ($elems as $item) {
+					if ($item instanceof DOMElement && $item->hasAttribute('href')) {
+						_debug("... got an element, using href attribute", $debug_enabled);
+						$single_page_url = $item->getAttribute('href');
+						break 2;
+					} elseif ($item instanceof DOMAttr && $item->value) {
+						_debug("... got an attribute, using its value", $debug_enabled);
+						$single_page_url = $item->value;
+						break 2;
+					}
+				}
+			}
+		}
+
+		if(empty($single_page_url)) {
+			_debug("no single_page_url found, continuing with main page", $debug_enabled);
+			return;
+		}
+
+		_debug("extracted single_page_url: $single_page_url", $debug_enabled);
+
+		// If we've got URL, resolve against $url
+		$single_page_url = makeAbsoluteStr($url, $single_page_url);
+		_debug("... converted to absolute single_page_url: $single_page_url", $debug_enabled);
+
+		if($single_page_url == $url) {
+			_debug("single_page_url equals current page", $debug_enabled);
+			return;
+		}
+
+		$single_page_html = file_get_contents($single_page_url);
+
+		if(empty($single_page_html)) {
+			_debug("single_page_url document is empty", $debug_enabled);
+			return;
+		}
+
+		$html = $single_page_html;
+		$url = $single_page_url;
 	}
 
 	protected function create_archived_article($title, $url, $content, $labels_str, $owner_uid) {
