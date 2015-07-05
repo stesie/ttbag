@@ -73,7 +73,8 @@ class Ttbag extends Plugin implements IHandler {
 		}
 
 		if(!empty($_REQUEST["xdebug"]) && $_REQUEST['xdebug'] == 2) {
-			die("<hr><h1>$title</h1>\n$content");
+			$dateStr = date('Y-m-d H:i:s', $extracted_content['date']);
+			die("<hr>Authors: {$extracted_content['authors']}<br/>Date: {$dateStr}<h1>$title</h1>\n$content");
 		}
 
 		$content = $this->dbh->escape_string($content, false);
@@ -146,6 +147,8 @@ class Ttbag extends Plugin implements IHandler {
 
 		return array(
 			'title' => $extractor->getTitle(),
+			'authors' => $extractor->getAuthors(),
+			'date' => $extractor->getDate(),
 			'html' => $html,
 		);
 	}
