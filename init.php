@@ -83,6 +83,7 @@ class Ttbag extends Plugin implements IHandler {
 	}
 
 	protected function extract_content($url) {
+		$debug_enabled = defined('DAEMON_EXTENDED_DEBUG') || $_REQUEST['xdebug'];
 		if(!filter_var($url, FILTER_VALIDATE_URL)) {
 			return null;
 		}
@@ -99,12 +100,13 @@ class Ttbag extends Plugin implements IHandler {
 			return false;
 		}
 
-		echo "<pre>";
+		if($debug_enabled) echo "<pre>";
 		$extractor = new ContentExtractor(__DIR__.'/ftr-site-config', __DIR__.'/site-config.local');
-		$extractor->debug = true;
+		SiteConfig::$debug = $debug_enabled;
+		$extractor->debug = $debug_enabled;
 		$this->check_single_page($extractor, $url, $html);
 		$extract_result = $extractor->process($html, $url);
-		echo "</pre>";
+		if($debug_enabled) echo "</pre>";
 
 		if(!$extract_result) {
 			return false;
