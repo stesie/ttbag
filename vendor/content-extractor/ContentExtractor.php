@@ -19,7 +19,7 @@ class ContentExtractor
 				 'output-xhtml' => true,
 				 'logical-emphasis' => true,
 				 'show-body-only' => false,
-				 'new-blocklevel-tags' => 'article, aside, footer, header, hgroup, menu, nav, section, details, datagrid',
+				 'new-blocklevel-tags' => 'article, aside, figure, footer, header, hgroup, menu, nav, section, details, datagrid',
 				 'new-inline-tags' => 'mark, time, meter, progress, data',
 				 'wrap' => 0,
 				 'drop-empty-paras' => true,
